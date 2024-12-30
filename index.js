@@ -1,30 +1,36 @@
 const express = require('express');
-const http = require('http');
-const WebSocket = require('ws');
-
 const app = express();
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
 
-app.use(express.static('public'));
+const {WebSocketServer} = require("ws");
+const wss = new WebSocketServer({port:8080});
+const room = []
+// Websockets stuff....
 
-wss.on('connection', (ws) => {
-    console.log('New client connected');
 
-    ws.on('message', (message) => {
-        console.log(`Received: ${message}`);
-        wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(message.toString());
-            }
-        });
-    });
+// Express stuff...
+app.use(express.json());
 
-    ws.on('close', () => {
-        console.log('Client disconnected');
-    });
+app.get('/',(req,res)=>{
+    console.log("Endpoint called");
+    res.send("Hey");
 });
 
-server.listen(3000, () => {
-    console.log('Server is listening on port 3000');
+app.post('/addroom',(req,res)=>{
+    const {roomName , users} = req.body;
+    console.log()
+    room.push(
+        {
+            roomName : roomName,
+            users : users
+        }
+    );
+    res.send("User and room created Successfully..");
 });
+
+app.get("/getroom",(req,res)=>{
+    console.log(room);
+        res.json(room);
+})
+app.listen(3000,()=>{
+    console.log("Connected to the server");
+})
