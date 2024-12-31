@@ -1,33 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useRef, useState } from "react"
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
+  const msg = useRef("");
+  const [ws , setWs] = useState(null);
+  const [roomName , setRoomName] = useState("");
+  const [userName , setUserName] = useState("");
+  const [text , setText] = useState([]);
+  useEffect(()=>{
+    const socket = new WebSocket("ws://localhost:8080");
+    socket.onopen = () =>{
+      console.log("Connection is established");
+      const uName = prompt("Username de apna");
+      setUserName(uName);
+      const rName = prompt("Room name bata");
+      setRoomName(rName);
+      const initialMessage = JSON.stringify({
+        userName: uName,
+        roomName: rName,
+        message: "This message is for connection"
+      });
+      socket.send(initialMessage);
+    }
+    setWs(socket);
+    return () => {
+      socket.close();
+    }
+  },[])
+  if(ws) {
+    ws.onclose = () => {
+    console.log("Websocket connection closed");
+  }
+    ws.onmessage = (data) => {
+      setText(prevText => [...prevText, data.data]);
+    }
+}
+  const sendMsg = () =>{
+    const obj = {
+      userName : userName,
+      roomName : roomName,
+      message : msg.current.value
+    }
+    ws.send(JSON.stringify(obj));
+    setText(prevText => [...prevText,msg.current.value]);
+  }
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div className="messages">
+      {
+        text.map((data,index)=> (
+          <div key={index}>{data}</div>
+        ))
+      }
+    </div>
+    <div className="text_area">
+      <input type="text" ref={msg} />
+      <button onClick={sendMsg}>Send</button>
+    </div>
     </>
   )
 }

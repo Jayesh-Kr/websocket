@@ -11,7 +11,11 @@ wss.on('connection',(socket)=>{
     });
     socket.send("User Connected");
     socket.on("message",(data)=>{
+        try{
         const {roomName,userName,message} = JSON.parse(data);
+        // console.log(roomName);
+        // console.log(userName);
+        console.log(userName+"   "+message);
             const isRoom = allRoom.includes(roomName);
             if(isRoom) {
                 const a = allRoom.indexOf(roomName);
@@ -32,7 +36,14 @@ wss.on('connection',(socket)=>{
                 socket.send("Incorrect room entered....");
                 socket.close();
             }
-    })
+    }
+catch(error){
+    console.log(error.message);
+    socket.send("Invalid type of msg... closing the websocket connection");
+    socket.close();
+}
+    }
+)
 })
 
 // Express stuff...
@@ -44,12 +55,16 @@ app.get('/',(req,res)=>{
 });
 
 app.post("/joinRoom",(req,res)=>{
+    try{
     const {roomName,userName} = req.body;
     for(let a=0; a<room.length;a++){
         if(room[a].roomName === roomName)
             room[a].users.push(userName);
     }
     res.send("User added to room successfully");
+}catch(error) {
+    console.log(error.message);
+}
 });
 
 app.post('/addroom',(req,res)=>{
