@@ -20,6 +20,7 @@
     <ul id="messages"></ul>
     <form id="form" action="">
       <input id="input" autocomplete="off" /><button>Send</button>
+      <button id="toggle-btn">Disconnect</button>
     </form>
     <!-- <script src="node_modules/socket.io/client-dist/socket.io.js"></script> -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
@@ -41,6 +42,19 @@
                 window.scrollTo(0,document.body.scrollHeight);
             })
         });
+
+
+        const btn = document.getElementById("toggle-btn");
+        btn.addEventListener('click',(e)=>{
+          e.preventDefault();
+          if(socket.connected){
+            btn.innerText = "Connect";
+            socket.disconnect();
+          } else {
+            btn.innerText = "Disconnect";
+            socket.connect();
+          }
+        })
     </script>
   </body>
 </html>
